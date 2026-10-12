@@ -1,0 +1,2105 @@
+<h1>Uniform 3D Unofficial Reference Manual</h1>
+<p>Uniform 3D is a comprehensive, multi-purpose 3D modeling and texturing application designed specifically for the iPad by Sparseal, a company founded by former Blender sculpting tools lead Pablo Dobarro and Godot Engine developer Joan Fons. Billed as an &quot;all-in-one tool for creating game-ready assets&quot;, Uniform discards the fragmented workspace approach of traditional desktop software in favor of a unified pipeline architecture. Within a single environment, artists can generate high-poly sculpts, build low-poly polygon cages, sketch gesture-based retopology (incorporating Sparseal&#39;s CozyBlanket toolset), unwrap UVs, and paint multi-channel PBR textures. The application features a real-time, GPU-accelerated renderer supporting physical lighting and materials, and allows users to apply the exact same brush toolset across dense displacement sculpts, lightweight low-poly meshes, and 2D canvas layers simultaneously. Engineered around a strict two-handed hardware paradigm—separating touch navigation from Apple Pencil spatial manipulation—Uniform aims to deliver a desktop-class asset creation workflow optimized entirely for tablet ergonomics.</p>
+<h2>Table of Contents</h2>
+<ul>
+<li><a href="#uniform-3d-unofficial-reference-manual">Uniform 3D Unofficial Reference Manual</a><ul>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#part-i-core-philosophy--data-architecture-foundations">Part I: Core Philosophy &amp; Data Architecture (Foundations)</a><ul>
+<li><a href="#1-the-core-philosophy-pipelines-in-a-box">1. The Core Philosophy: Pipelines in a Box</a><ul>
+<li><a href="#conceptual-tools-vs-data-restricted-tools">Conceptual Tools vs. Data-Restricted Tools</a></li>
+</ul>
+</li>
+<li><a href="#2-structural-ontology-dissecting-uniforms-building-blocks">2. Structural Ontology: Dissecting Uniform&#39;s Building Blocks</a><ul>
+<li><a href="#1-scene-object-vs-data-object-the-tree-vs-teapot-tools">1. Scene Object vs. Data Object (The &quot;Tree&quot; vs. &quot;Teapot&quot; Tools)</a></li>
+<li><a href="#2-what-is-a-graph">2. What is a &quot;Graph&quot;?</a></li>
+</ul>
+</li>
+<li><a href="#3-geometry-sub-elements-regions-seams-and-masks">3. Geometry Sub-Elements: Regions, Seams, and Masks</a></li>
+<li><a href="#4-the-viewport-overlay-system-context-driven-rendering">4. The Viewport Overlay System: Context-Driven Rendering</a></li>
+</ul>
+</li>
+<li><a href="#part-ii-hardware-interface--workspace-configuration-the-environment">Part II: Hardware, Interface &amp; Workspace Configuration (The Environment)</a><ul>
+<li><a href="#1-the-input-paradigm-hand-separation">1. The Input Paradigm: Hand Separation</a></li>
+<li><a href="#2-the-core-workspace-interface">2. The Core Workspace Interface</a></li>
+<li><a href="#3-the-left-rail--hardware-modifiers">3. The Left Rail &amp; Hardware Modifiers</a><ul>
+<li><a href="#session--environment-management">Session &amp; Environment Management</a></li>
+<li><a href="#parameter-tweaking-the-factor-slider">Parameter Tweaking: The Factor Slider</a></li>
+<li><a href="#dynamic-hardware-modifiers-mod-0-mod-1-mod-2">Dynamic Hardware Modifiers (Mod 0, Mod 1, Mod 2)</a></li>
+</ul>
+</li>
+<li><a href="#4-workspace-customization--hud-ergonomics">4. Workspace Customization &amp; HUD Ergonomics</a><ul>
+<li><a href="#customizing-the-interface">Customizing the Interface</a></li>
+<li><a href="#ergonomics--left-handed-drawing">Ergonomics &amp; Left-Handed Drawing</a></li>
+</ul>
+</li>
+<li><a href="#5-multi-camera-viewports--reference-boards">5. Multi-Camera Viewports &amp; Reference Boards</a><ul>
+<li><a href="#multi-camera-viewports">Multi-Camera Viewports</a></li>
+<li><a href="#reference-boards--palettes">Reference Boards &amp; Palettes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#part-iii-geometry-creation-editing--retopology-modeling">Part III: Geometry Creation, Editing &amp; Retopology (Modeling)</a><ul>
+<li><a href="#1-base-geometry-types--the-conversion-pipeline">1. Base Geometry Types &amp; The Conversion Pipeline</a><ul>
+<li><a href="#base-generation">Base Generation</a></li>
+<li><a href="#the-explicit-conversion-operations">The Explicit Conversion Operations</a></li>
+<li><a href="#understanding-albs-surface-data-points">Understanding ALBs (Surface Data Points)</a></li>
+</ul>
+</li>
+<li><a href="#2-the-curve-pipeline-polycurve--geocurve">2. The Curve Pipeline (PolyCurve &amp; GeoCurve)</a><ul>
+<li><a href="#polycurves-structural-graph-curves">PolyCurves (Structural Graph Curves)</a></li>
+<li><a href="#geocurves-dense-point-curves">GeoCurves (Dense Point Curves)</a></li>
+</ul>
+</li>
+<li><a href="#3-managing-selections--loop-transformations">3. Managing Selections &amp; Loop Transformations</a><ul>
+<li><a href="#scaling-topological-loops">Scaling Topological Loops</a></li>
+<li><a href="#gesture-based-selection">Gesture-Based Selection</a></li>
+</ul>
+</li>
+<li><a href="#4-implicit-posing-rigging-without-skeletons">4. Implicit Posing: Rigging Without Skeletons</a><ul>
+<li><a href="#the-two-implicit-rig-providers">The Two Implicit Rig Providers</a></li>
+<li><a href="#pose-transformation-kernels">Pose Transformation Kernels</a></li>
+</ul>
+</li>
+<li><a href="#5-gesture-driven-retopology-architecture">5. Gesture-Driven Retopology Architecture</a><ul>
+<li><a href="#the-underlying-pipeline">The Underlying Pipeline</a></li>
+<li><a href="#initializing-the-retopology-mesh">Initializing the Retopology Mesh</a></li>
+<li><a href="#surface-quad-creation--expansion">Surface Quad Creation &amp; Expansion</a></li>
+<li><a href="#interactive-topology-modification">Interactive Topology Modification</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#part-iv-surfacing-uvs--pbr-pipelines-texturing">Part IV: Surfacing, UVs &amp; PBR Pipelines (Texturing)</a><ul>
+<li><a href="#1-topological-seams--automated-uv-unwrapping">1. Topological Seams &amp; Automated UV Unwrapping</a><ul>
+<li><a href="#marking--erasing-seams">Marking &amp; Erasing Seams</a></li>
+<li><a href="#global-gestures-background-swipes">Global Gestures (Background Swipes)</a></li>
+</ul>
+</li>
+<li><a href="#2-executing-the-unwrap--the-uv-layout-scene">2. Executing the Unwrap &amp; The UV Layout Scene</a></li>
+<li><a href="#3-the-layer-stack--physical-domains">3. The Layer Stack &amp; Physical Domains</a><ul>
+<li><a href="#layer-types">Layer Types</a></li>
+<li><a href="#the-physical-domains-architecture">The Physical Domains Architecture</a></li>
+</ul>
+</li>
+<li><a href="#4-integrating-external-images">4. Integrating External Images</a></li>
+<li><a href="#5-masking--domain-protection">5. Masking &amp; Domain Protection</a><ul>
+<li><a href="#interactive-painting--viewport-clipping">Interactive Painting &amp; Viewport Clipping</a></li>
+<li><a href="#algorithmic-mask-operators--domain-filters">Algorithmic Mask Operators &amp; Domain Filters</a></li>
+<li><a href="#procedural-influence-providers-geometry-aware-masking">Procedural Influence Providers (Geometry-Aware Masking)</a></li>
+<li><a href="#domain-safety--cross-contamination-overrides">Domain Safety &amp; Cross-Contamination Overrides</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#part-v-procedural-systems--advanced-tool-customization-under-the-hood">Part V: Procedural Systems &amp; Advanced Tool Customization (Under the Hood)</a><ul>
+<li><a href="#1-evaluator-stack-vs-global-overrides-the-rosetta-stone">1. Evaluator Stack vs. Global Overrides: The Rosetta Stone</a></li>
+<li><a href="#2-essential-module-configurations-matrix">2. Essential Module Configurations Matrix</a></li>
+<li><a href="#3-advanced-tool-customization-building-custom-brushes">3. Advanced Tool Customization: Building Custom Brushes</a><ul>
+<li><a href="#core-module-library">Core Module Library</a><ul>
+<li><a href="#input-filters-stroke-interpolation">Input Filters (Stroke Interpolation)</a></li>
+<li><a href="#evaluators-hardware-dynamics">Evaluators (Hardware Dynamics)</a></li>
+<li><a href="#brush-overlays-parameter-modulation">Brush Overlays (Parameter Modulation)</a></li>
+<li><a href="#brush-samplers-stroke-generation">Brush Samplers (Stroke Generation)</a></li>
+<li><a href="#falloff-providers-brush-tip-profiling">Falloff Providers (Brush Tip Profiling)</a></li>
+<li><a href="#surface-influence-providers-the-masking-engine">Surface Influence Providers (The Masking Engine)</a></li>
+<li><a href="#brush-kernels-the-execution-payload">Brush Kernels (The Execution Payload)</a></li>
+</ul>
+</li>
+<li><a href="#building-stylized-brushes">Building Stylized Brushes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#appendices">Appendices</a><ul>
+<li><a href="#appendix-a-master-tool--modifier-reference">Appendix A: Master Tool &amp; Modifier Reference</a></li>
+</ul>
+</li>
+<li><a href="#appendix-a-master-tool-action-and-resource-reference">Appendix A: Master Tool, Action, and Resource Reference</a></li>
+</ul>
+</li>
+</ul>
+<h2>Part I: Core Philosophy &amp; Data Architecture (Foundations)</h2>
+<h3>1. The Core Philosophy: Pipelines in a Box</h3>
+<p>To navigate Uniform 3D efficiently, you must set aside the segmented workflow typical of traditional desktop 3D software such as Blender, Maya, or 3ds Max. In standard applications, project data is fragmented across isolated modes and dedicated tabbed workspaces:</p>
+<ul>
+<li>Constructing a polygon cage requires entering a dedicated <strong>Edit Mode</strong>.</li>
+<li>Flattening seams requires transitioning to an independent <strong>UV Workspace</strong>.</li>
+<li>Carving high-frequency detail demands switching to a <strong>Sculpt Mode</strong> or initializing a dynamic subdivision grid.</li>
+<li>Surfacing requires entering a <strong>Texture Paint Workspace</strong> to project colors onto pre-allocated 2D bitmaps.</li>
+<li>Integrating these parts requires opening a node-based <strong>Shader Editor</strong> to wire normal maps, roughness channels, and albedo maps into a material shader.</li>
+</ul>
+<pre><code class="language-text">Traditional 3D Software Architecture:
+[Polygon Mesh] ---&gt; [UV Islands] ---&gt; [2D Image Textures] ---&gt; [Shader Graph] ---&gt; [Render Engine]
+  (Workspace 1)       (Workspace 2)        (Workspace 3)          (Workspace 4)
+
+Uniform 3D: Pipeline-in-a-Box
++-----------------------------------------------------------------------------------------------+
+| Object: PolyMesh / GeoMesh (Self-Contained Pipeline Container)                                |
+| [ Topology Graph &lt;-&gt; Auto/Manual UVs &lt;-&gt; Multi-Layer PBR Canvas &lt;-&gt; Real-Time Normal Shader ] |
++-----------------------------------------------------------------------------------------------+
+                     ^
+       Abstract Artistic Intent: &quot;Paint Color&quot; / &quot;Draw Displacement&quot;
+       (The tool evaluates directly across the entire internal pipeline)
+</code></pre>
+<p>In Uniform 3D, <strong>an Object is not merely a geometric mesh; it is an entire, self-contained production pipeline packaged inside a single container</strong>. An object encapsulates its own topological graph, high-density sculpted displacement data, automated UV layouts, multi-channel PBR layer stacks, and real-time shader evaluation simultaneously.</p>
+<h4>Conceptual Tools vs. Data-Restricted Tools</h4>
+<p>Because every object operates as an integrated pipeline, tools in Uniform 3D do not target narrow, rigid data types. Instead, they represent <strong>abstract artistic intents</strong> that automatically evaluate across whichever stage of the object pipeline is currently active:</p>
+<ul>
+<li><strong>The Paint Color Tool:</strong> In traditional software, a brush must be explicitly programmed as either a &quot;Vertex Color Painter&quot; or a &quot;Texture Projection Painter&quot;. In Uniform, <strong>Paint Color</strong> simply instructs the engine: <em>&quot;apply pigment to this asset&quot;</em>. If targeted at a dense, sculpted <strong>GeoMesh</strong>, the brush writes directly into the underlying surface point colors (the ALB points). If targeted at a low-poly <strong>PolyMesh</strong>, the exact same brush targets the object&#39;s active layer stack and paints across the real-time PBR canvas texture map.</li>
+<li><strong>The Displacement Tool:</strong> If applied to a high-resolution <strong>GeoMesh</strong>, displacement brushes (like <strong>Draw Displacement</strong> or <strong>Clay</strong>) physically offset 3D surface points along normal vectors. If applied to a basic, 8-vertex low-poly <strong>PolyMesh</strong> cube, the brush does not distort the coarse geometry; it evaluates your stroke as virtual geometric height and writes it directly to the active normal map channel in real time.</li>
+</ul>
+<hr>
+<h3>2. Structural Ontology: Dissecting Uniform&#39;s Building Blocks</h3>
+<p>Understanding how Uniform organizes scenes prevents workflow friction. Data is structured in a strict hierarchy:</p>
+<pre><code class="language-text">[ Workspace File ]
+       │
+       └─── [ Scene Object ] (World Stage, Transform Hierarchies, Light Fields)
+                    │
+                    └─── [ Scene Nodes / Instances ]
+                                 │
+                                 └─── [ Data Object Pipeline ] (PolyMesh, GeoMesh, Curve)
+                                              │
+                                              ├─── Graph Layout (Vertices, Edges, Faces, Loops)
+                                              ├─── Regions (Integer ID Face Sets / Polygroups)
+                                              ├─── Surface / ALBs (High-Res Sculpt Points)
+                                              └─── Domains &amp; Layer Stack (PBR Textures, Masks)
+</code></pre>
+<h4>1. Scene Object vs. Data Object (The &quot;Tree&quot; vs. &quot;Teapot&quot; Tools)</h4>
+<p>Uniform divides spatial transformations into two distinct levels. You must verify which level you are editing by checking the icon located in the active tool header at the top of the interface:</p>
+<ul>
+<li><strong>The Scene Transform Tool (Tree Icon):</strong> Represents the world stage and coordinate layout. It governs spatial placement (world position and orientation), parent-child relationships, environment light fields, and scene instances. The &quot;points&quot; evaluated by a Scene Object are not mesh vertices; they are the central origin points of the individual Data Objects placed within the room. Using a Transform tool marked with a <strong>Tree icon</strong> translates or rotates the entire object container as an actor on the stage.</li>
+<li><strong>The Data Transform Tool (Teapot Icon):</strong> Represents the raw geometric and material content living inside the scene node. Using a Transform tool marked with a <strong>Teapot icon</strong> alters the actual selected geometry vertices, curves, or volumetric fields in local object space, while leaving the object’s world-space origin point completely stationary. Look at Part III section &quot;Gesture-Based Selection&quot; for more about how to select vertices for applying localized transforms.</li>
+</ul>
+<blockquote>
+<p><strong>About scaling:</strong>
+In Uniform 3D, <strong>an Object&#39;s Scene Transform cannot be scaled</strong>. Scene node transforms are strictly locked to a uniform scale factor of <strong>1.0</strong>. If you attempt to scale an object using the <strong>Scene Transform</strong> (Tree) tool, the engine will safely ignore the operation. To alter the physical dimensions of a model, you must use the <strong>Data Transform</strong> (Teapot) tool, which scales the underlying vertices within the local data container relative to one another.</p>
+</blockquote>
+<h4>2. What is a &quot;Graph&quot;?</h4>
+<p>In Uniform, the term <strong>Graph</strong> refers exclusively to <strong>explicit topological networks</strong> (built on a Doubly Connected Edge List network). A Graph consists of discrete vertices connected by directed edges, bounded into closed polygonal faces and continuous edge loops:</p>
+<ul>
+<li>A <strong>PolyMesh</strong> and a <strong>PolyCurve</strong> possess a Graph: you can insert edge loops, slide vertices along quad rails, dissolve edges, and perform face extrusions.</li>
+<li>A raw <strong>GeoMesh</strong> or <strong>Volume Group</strong> does <strong>not</strong> contain an accessible Graph. Instead, they are represented as a dense spatial continuum of point-sampled surface elements (ALBs) or mathematical Signed Distance Fields (SDF). Graph-specific tools (such as <strong>Loop Slide</strong> or <strong>Extrude</strong>) will not execute on a GeoMesh or Volume Group because there are no structural edge loops or polygon faces to evaluate.</li>
+</ul>
+<hr>
+<h3>3. Geometry Sub-Elements: Regions, Seams, and Masks</h3>
+<p>Within an active Graph, surface selection and tool isolation are governed by three primary sub-element types:</p>
+<ul>
+<li><strong>Regions:</strong> Polygonal face groupings tagged with unique integer identification values. Regions function identically to &quot;Face Sets&quot; in Blender or &quot;Polygroups&quot; in ZBrush. When using topology tools such as <strong>Extrude</strong>, <strong>Delete Region</strong>, or <strong>Draw Boundary</strong>, the engine evaluates the perimeter of the Region rather than individual face selections. Regions allow complex topological operations to be performed across massive surface patches with a single gesture.</li>
+<li><strong>Seams:</strong> Specific topological edges tagged with a persistent marker using the <strong>Mark Seam</strong> tool. Marked seams render as prominent red lines across the geometry in the viewport. They serve one primary role: defining the perimeter cuts used by the unwrapping engine when executing an automated <strong>Surface Rebuild</strong> to generate UV layouts.</li>
+<li><strong>Selection / Masks:</strong> Floating-point greyscale fields ranging from <strong>0.0</strong> to <strong>1.0</strong>, painted directly across vertices, ALB surface points, or layer masks using the <strong>Set Selection</strong> brush. Masks temporarily isolate or modulate tool influence: a value of <strong>1.0</strong> (white) receives full tool deformation or paint intensity, while a value of <strong>0.0</strong> (black) completely protects the geometry from modification.</li>
+</ul>
+<hr>
+<h3>4. The Viewport Overlay System: Context-Driven Rendering</h3>
+<p>Uniform 3D does not rely on a universal, manual viewport display toggle (such as standard Wireframe, Solid, or X-Ray buttons found in the headers of other software). Instead, <strong>Uniform employs an automated, context-driven overlay engine where the active tool’s requirements dictate exactly what geometry representations appear in the viewport</strong>:</p>
+<ul>
+<li><strong>Solid Shading Only:</strong> Activated automatically whenever high-level sculpt brushes (such as <strong>Draw Displacement</strong>, <strong>Clay</strong>, or <strong>Trim</strong>) are selected. The engine hides all wireframes, edges, and vertex markers to minimize GPU overhead and maximize Apple Pencil responsiveness across dense point fields.</li>
+<li><strong>Solid with Floating Dots:</strong> Activated when point-level deformers, selection brushes, or direct translation tools (such as <strong>Move</strong> or the <strong>Selection Editor</strong>) are active. The dots represent interactable deformation handles or vertex coordinate targets. Unselected points display as neutral markers, while active selections illuminate as bright blue markers.</li>
+<li><strong>Highlighted Wire Edges &amp; Face Outlines:</strong> Triggered exclusively by topological mesh editing tools (such as the <strong>EditMesh</strong> toolset, <strong>Graph Layout Cursor</strong>, or <strong>Mark Seam</strong>). Because operations like loop cutting, seam marking, and face extrusions require targeting specific edges and quad boundaries, the tool forces the viewport to render the explicit wire graph over the shaded geometry.</li>
+<li><strong>Region Color Overlays:</strong> Activated by region-management tools (such as the <strong>Region Editor</strong>). The engine suppresses standard PBR material shading and renders the geometry using distinct, bright flat colors assigned to each individual Region ID. This allows for instant visualization of discrete topological patches before performing broad, region-based extrusions or deletions.</li>
+<li><strong>Contextual Cursors &amp; Target Gizmos:</strong> Specific tools trigger specialized cursor overlays to preview your exact impact area before committing a stroke. Examples include the <strong>Surface Cursor</strong> (displaying the brush radius and snapping to the closest ALB point), the <strong>EditMesh Element Gizmo</strong> (highlighting the specific face, edge, or vertex actively targeted by the Pencil), and standard transform arrow gizmos for spatial manipulation.</li>
+</ul>
+<hr>
+<h2>Part II: Hardware, Interface &amp; Workspace Configuration (The Environment)</h2>
+<h3>1. The Input Paradigm: Hand Separation</h3>
+<p>Uniform 3D is engineered specifically for a two-handed mobile and tablet workflow. To prevent accidental mesh modifications while navigating and to eliminate palm-rejection errors, the engine tracks touch inputs and stylus inputs through strictly isolated hardware channels:</p>
+<ul>
+<li><strong>Touch (Fingers):</strong> Dedicated exclusively to interface interaction and viewport navigation. You use your fingers to orbit, pan, and zoom the camera, drag UI sliders, and hold the modifier pads (<strong>Mod 0–2</strong>).</li>
+<li><strong>Apple Pencil (Stylus):</strong> Dedicated exclusively to spatial data manipulation. The Pencil handles viewport mesh editing, sculpting strokes, vertex dragging, seam drawing, and direct spatial manipulation, utilizing the hardware&#39;s tip pressure to dynamically modulate stroke depth and deformation speed.</li>
+</ul>
+<hr>
+<h3>2. The Core Workspace Interface</h3>
+<p>The default workspace maximizes the central 3D viewport while maintaining immediate access to critical tools through two flanking side rails:</p>
+<ul>
+<li><strong>The Left Rail (Modifiers &amp; Parameters):</strong> Controlled by your non-dominant off-hand. It houses the <strong>Main Menu</strong>, the <strong>Tool Gallery</strong>, the <strong>Factor Slider</strong> (for brush strength), and the three dynamic hardware modifiers that alter your active tool&#39;s behavior on the fly.</li>
+<li><strong>The Right Rail (Tools &amp; Navigation):</strong> Controlled by your dominant drawing hand. It contains the <strong>Quick Launcher</strong> for pinned tools and folders, the radial <strong>Grid Overlay</strong> toggle, the <strong>Radius Control</strong> strip for real-time brush sizing, and quick viewport toggles like <strong>Undo</strong> and <strong>Surface View</strong>.</li>
+</ul>
+<hr>
+<h3>3. The Left Rail &amp; Hardware Modifiers</h3>
+<p>The left rail functions as a dynamic modulation engine rather than a static toolbar, altering its state and labels based on the specific tool you are currently holding.</p>
+<p><em>(Note: For an exhaustive breakdown of every individual tool, its specific modules, and complete usage instructions, please refer to the supplementary Uniform 3D Tool Specification &amp; Usage Guide document.)</em></p>
+<blockquote>
+<p><strong>Note:</strong> For an exhaustive breakdown of every individual tool, its specific modules, and complete usage instructions, please refer to <strong>Appendix A: Master Tool &amp; Modifier Reference</strong> for the complete breakdown.</p>
+</blockquote>
+<h4>Session &amp; Environment Management</h4>
+<ul>
+<li><strong>Project Management Header:</strong> File operations are exposed directly in the header bar via quick icons rather than a hidden dropdown menu. Use the <strong>Folder</strong> icon to open existing workspaces, the <strong>Diskette</strong> icon to save your current progress, and the <strong>Diskette with a Plus (+)</strong> icon to save a new copy or increment your project version.</li>
+<li><strong>Tool Gallery &amp; Launchers:</strong> Tapping the database icon opens the complete repository of all tools compiled into the engine, categorized logically by functional pipeline (<strong>Surface</strong>, <strong>Graph</strong>, <strong>Deform</strong>, <strong>Region</strong>, <strong>Scene</strong>). For rapid access during modeling, Uniform relies on customizable interface widgets called <strong>Launchers</strong>. The default widget on the rail is the <strong>Grid Launcher</strong>, but you can customize your interface using <strong>List Launchers</strong>, <strong>Outliner Launchers</strong>, or <strong>Bar Launchers</strong> to fit your preferred ergonomic workflow.</li>
+</ul>
+<h4>Parameter Tweaking: The Factor Slider</h4>
+<p>Represented by a power icon, this vertical touch drag area sets the working strength, flow, or procedural depth of your current operation.</p>
+<ul>
+<li>Dragging up or down with a finger adjusts the intensity from <strong>0.0</strong> to <strong>1.0</strong> without opening a sub-menu.</li>
+<li>Double-tapping the strip summons a numeric keypad popover for precise mathematical value entry.</li>
+<li>Its function is context-dependent: it scales displacement amplitude during sculpting, controls opacity during canvas painting, and adjusts convergence speed for smoothing filters.</li>
+</ul>
+<h4>Dynamic Hardware Modifiers (Mod 0, Mod 1, Mod 2)</h4>
+<p>Three dedicated modifier pads are meant to be held by your off-hand while drawing with the Apple Pencil.</p>
+<ul>
+<li><strong>Dynamic Feedback Labels:</strong> The text on each button automatically updates depending on the selected tool’s specific configuration to reflect its secondary actions (e.g., switching from <em>Add</em> to <em>Subtract</em>, <em>Extrude</em> to <em>Inset</em>, or acting as a temporary smoothing override).</li>
+<li><strong>Keyboard Equivalents:</strong> If using an external Bluetooth keyboard, these pads map directly to standard modifier keys: <strong>Mod 0</strong> maps to Spacebar/Shift, <strong>Mod 1</strong> maps to Option/Alt, and <strong>Mod 2</strong> maps to Command/Control.</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> Because the secondary actions of the Mod 0, Mod 1, and Mod 2 hardware pads change entirely depending on your active tool, a comprehensive matrix of every tool and its specific modifier overrides is provided at the end of this manual. Please refer to <strong>Appendix A: Master Tool &amp; Modifier Reference</strong> for the complete breakdown.</p>
+</blockquote>
+<hr>
+<h3>4. Workspace Customization &amp; HUD Ergonomics</h3>
+<p>Uniform 3D features a fully modular interface designed to adapt to specific production stages—such as concept blocking, fine sculpting, UV packing, or multi-angle rendering. The default mobile layout is a flexible starting configuration that can be reorganized through the <strong>HUD Editor</strong>.</p>
+<h4>Customizing the Interface</h4>
+<ol>
+<li><strong>Entering Edit Mode &amp; Profiles:</strong> Tap the <strong>three dots</strong> next to your profile name located on the right side of the header bar. This menu allows you to manage and create custom UI profiles, and enter edit mode to define exactly which widgets to use and where to place them on your screen.</li>
+<li><strong>The Widget Gallery:</strong> Once in edit mode, tap the <strong>Widget Gallery</strong> button (the <strong>+</strong> icon in the header) to open the complete catalog of dockable interface panels (including the Scene Outliner, Evaluator Inspector, Layer Stack, Volume Groups, References, Clock, and Actions-Per-Minute Tracker).</li>
+<li><strong>Docking &amp; Arranging:</strong> Drag any widget from the gallery onto the screen. The interface exposes an underlying grid layout that automatically docks panels along the screen rails or anchors them into popovers.</li>
+<li><strong>Managing Profiles:</strong> Your layout adjustments are tied to your active UI profile. By returning to the profile menu (the three dots), you can create and switch between distinct profiles tailored for specific workflows, such as dedicated layouts for sculpting, polygon modeling, and lighting.</li>
+</ol>
+<h4>Ergonomics &amp; Left-Handed Drawing</h4>
+<ul>
+<li><strong>Flip UI Horizontally:</strong> Inside the HUD editor options menu or global interface settings, selecting <strong>Flip UI Horizontally</strong> swaps the Left and Right rails across the screen. This positions the modifier pads (<strong>Mod 0–2</strong>) under your right thumb while freeing the left side of the display for unobstructed Apple Pencil drawing. The button labels flip their horizontal alignment so your resting thumb never covers the action description.</li>
+<li><strong>Active Drawing Area Constraints:</strong> On large tablets, reaching across the entire surface repeatedly can cause hand and shoulder strain. In the HUD editor, you can insert spacer panels or narrow the central viewport boundaries to constrain the active 3D drawing canvas into a compact, ergonomically comfortable zone.</li>
+</ul>
+<hr>
+<h3>5. Multi-Camera Viewports &amp; Reference Boards</h3>
+<p>You can split the central display by dragging additional viewport panels from the Widget Gallery onto the canvas, managing visual references and staging simultaneously.</p>
+<h4>Multi-Camera Viewports</h4>
+<ul>
+<li><strong>Independent Navigation &amp; Camera Types:</strong> Each viewport panel functions independently. You can set one viewport to look through an orthographic camera (such as Front, Top, or Side view) for precise profile alignment, while freely tumbling a perspective camera in an adjacent panel.</li>
+<li><strong>Scene Targeting (Instancing Workflows):</strong> Crucially, viewports can target entirely different scenes simultaneously within the same workspace file. This facilitates side-by-side instancing workflows: you can isolate a master environment in your right viewport while focusing on a solitary prop in your left viewport. Any sculpting or painting edits made to the prop will instantly propagate to its instances in the master environment on the adjacent screen.</li>
+<li><strong>Ergonomic Bounding:</strong> The modular layout engine allows you to physically adjust the boundaries of these panels. By scaling viewports or adding spacer widgets, you can force your primary drawing viewport into a specific, comfortable physical zone on your tablet screen, minimizing arm strain during long sessions.</li>
+</ul>
+<h4>Reference Boards &amp; Palettes</h4>
+<p>Managing visual references and global color palettes is centralized inside the <strong>References Inspector</strong>.</p>
+<ul>
+<li><strong>Image Reference Overlays:</strong> External concept art, orthographic model sheets, or texture references can be imported into dedicated workspace panels. These panels can be docked alongside your active viewports or overlaid directly on top of the 3D canvas with adjustable transparency, allowing you to trace silhouettes and align proportions directly with your sculpting and modeling tools.</li>
+<li><strong>Fill Colors &amp; PBR Material References:</strong> The References Inspector contains split tabs for managing workspace-wide color palettes and physically based material definitions (including Roughness, Metalness, Subsurface, Sheen, Clearcoat, and Emission values). Assigning these global references via <strong>Reference Fill Layers</strong> ensures that updating a swatch or material in the inspector dynamically updates every linked object across your workspace.</li>
+</ul>
+<hr>
+<h2>Part III: Geometry Creation, Editing &amp; Retopology (Modeling)</h2>
+<h3>1. Base Geometry Types &amp; The Conversion Pipeline</h3>
+<p>Uniform 3D enforces a strict, directional geometry pipeline. Tools target specific data architectures, meaning mathematical volumes cannot be sculpted with displacement brushes until they are converted into surface point clouds, and topological graph operations cannot run on un-meshed curves.</p>
+<p>To master this pipeline, you must first understand the two primary mesh architectures that Uniform utilizes:</p>
+<ul>
+<li><strong>PolyMesh (Structural Polygon Cages):</strong> The traditional 3D mesh structure. A PolyMesh contains a distinct topological graph consisting of explicit vertices, edges, and polygon faces. It is lightweight, supports UV unwrapping, and is the standard format used for low-poly modeling, retopology, and exporting to game engines.</li>
+<li><strong>GeoMesh (Dense Point Clouds):</strong> Uniform&#39;s high-resolution sculpting architecture. A GeoMesh abandons the traditional polygon graph entirely in favor of a massive, dense continuum of spatial surface points known as <strong>ALBs</strong>. GeoMeshes do not support standard topological operations (like loop cutting or extruding), but they are optimized to handle millions of points for lag-free organic displacement sculpting and vertex painting.</li>
+</ul>
+<h4>Base Generation</h4>
+<ul>
+<li><strong>Procedural Meshes:</strong> Generated via parametric modules (e.g., <strong>Quad Sphere</strong>, <strong>Cylinder</strong>, <strong>Icosahedron</strong>, or <strong>Disk</strong> primitives) within an Evaluator stack. They remain entirely non-destructive as long as the provider module is active in the stack.</li>
+<li><strong>Volume Groups:</strong> Mathematical Signed Distance Fields (SDF) used for rapid boolean blocking. Shapes meld additively or carve subtractively in real-time without generating explicit or messy polygons.</li>
+</ul>
+<h4>The Explicit Conversion Operations</h4>
+<p>Geometry transitions are handled via the <strong>Surface Info</strong> panel using explicit conversion commands. Based on the active object&#39;s data class, the engine allows the following conversions:</p>
+<ul>
+<li><strong>Volume Group to GeoMesh:</strong> Bakes the SDF booleans into a dense <strong>GeoMesh</strong> point cloud via the <strong>Apply as GeoMesh</strong> command (found in Object / Apply Volume group), immediately unlocking surface point (ALB) displacement sculpting.</li>
+<li><strong>GeoMesh to Subdiv GeoMesh:</strong> A standard <strong>GeoMesh</strong> can be converted into a <strong>Subdiv GeoMesh</strong> to unlock multiresolution sculpting. It can also be collapsed back down to a standard GeoMesh. How to: 1. Select the Object in the Scene Outliner. 2. Open Surface Info via the Widget Gallery if not on screen. 3. Tap <strong>Convert to Subdiv GeoMesh</strong> (or the corresponding subdivision rebuild option) to upgrade the data class.</li>
+<li><strong>GeoMesh to PolyMesh:</strong> While a dense GeoMesh is designed for high-resolution sculpting without a traditional structural graph, it can be converted back into an editable <strong>PolyMesh</strong>. Because topological graphs require significant memory overhead, you must first drastically reduce the mesh&#39;s density using a decimation module (such as the <strong>Simplify Layout</strong> evaluator). Once the vertex count is reduced below the engine&#39;s safety threshold, the conversion command becomes available in the Surface Info panel. However, generating a completely new, clean low-poly topology over a GeoMesh requires utilizing the Retopology toolset rather than a simple one-click conversion</li>
+<li><strong>PolyMesh / GeoCurve to GeoMesh:</strong> Traditional polygon cages (<strong>PolyMesh</strong>) and curves (<strong>GeoCurve</strong>) can be converted into a <strong>GeoMesh</strong> to prepare them for high-resolution organic sculpting. How to: 1. Select the target object in the Scene Outliner. 2. Open Surface Info. 3. Tap <strong>Convert to GeoMesh</strong> to instantly translate the low-poly graph or curve data into a dense, surface point cloud.</li>
+</ul>
+<h4>Understanding ALBs (Surface Data Points)</h4>
+<p>In Uniform 3D&#39;s module architecture, an <strong>ALB</strong> is the fundamental unit of surface data that the engine evaluates during a tool stroke. Rather than processing the mesh as a single continuous surface, the engine breaks the active interaction area down into thousands of these individual, addressable points.</p>
+<p>Depending on the active layer and the tool&#39;s Brush Kernel, an ALB physically represents one of two things:</p>
+<ul>
+<li><strong>Vertices (Geometry):</strong> When using a Displacement or Deformation tool (such as carving, inflating, or moving), the ALBs are the actual structural vertices of the 3D mesh.</li>
+<li><strong>Texels (Texture):</strong> When using a Color or Paint tool, the ALBs are the individual texture elements (pixels) on the 2D canvas wrapped around the model.</li>
+</ul>
+<p><strong>How Modules Interrogate ALBs:</strong>
+When you draw a stroke, the tool&#39;s logic pipeline does not apply a blanket effect. Instead, modules like the <em>Falloff Provider</em> or <em>Surface Influence Provider</em> execute mathematical queries for every individual ALB within the brush radius. The engine asks questions like, <em>&quot;What is the physical curvature at this specific ALB?&quot;</em> or <em>&quot;Is this ALB inside the active selection mask?&quot;</em>. The Action Kernel then calculates and applies the final pigment or displacement to each ALB based on those specific returned values.</p>
+<hr>
+<h3>2. The Curve Pipeline (PolyCurve &amp; GeoCurve)</h3>
+<p>Just as polygonal geometry is divided into structural cages and dense point clouds, Uniform 3D splits curve data into two distinct architectural types: <strong>PolyCurve</strong> and <strong>GeoCurve</strong>.</p>
+<h4>PolyCurves (Structural Graph Curves)</h4>
+<p>PolyCurves represent editable topological networks consisting of distinct vertices and connected curve segments.</p>
+<ul>
+<li><strong>Editing:</strong> PolyCurves utilize the graph layout system, allowing you to select individual vertices, manipulate curve flow, and structure topological regions.</li>
+<li><strong>Procedural Integration:</strong> PolyCurves act as the underlying structural framework for generative evaluation operations. In the Evaluator stack, a PolyCurve can be used as the target path for a <strong>Rope Sequence</strong> (generating dynamic physics-based Inverse Kinematic chains) or a <strong>Contours Sequence</strong> (wrapping and arraying geometry along the curve&#39;s path).</li>
+</ul>
+<h4>GeoCurves (Dense Point Curves)</h4>
+<p>GeoCurves act as the curve equivalent to a high-density GeoMesh. They are dense, continuous point evaluations of a curve rather than a low-level editable graph.</p>
+<ul>
+<li><strong>Rendering &amp; Materials:</strong> GeoCurves carry full physical material data and can be rendered directly by path-traced engines without needing to be explicitly converted into polygonal tubes first.</li>
+<li><strong>Conversion:</strong> If organic sculpting or surface point manipulation is required, a GeoCurve can be explicitly converted into a standard <strong>GeoMesh</strong> via the <strong>Convert to GeoMesh</strong> command in the Surface Info panel.</li>
+</ul>
+<hr>
+<h3>3. Managing Selections &amp; Loop Transformations</h3>
+<p>While Uniform 3D offers dedicated modules for complex operations, many common modeling tasks are handled through fast, modifier-driven gestures in the viewport rather than explicit UI buttons.</p>
+<h4>Scaling Topological Loops</h4>
+<p>Because the standard Transform gizmo (the teapot) targets active selection masks rather than raw topological elements, attempting to manually select and scale a single edge loop can be tedious.</p>
+<p>To scale a loop quickly, bypass the transform gizmo entirely: use the <strong>Loop</strong> tool and activate the <strong>Inflate</strong> modifier. This forces the targeted loop to expand or contract evenly along its surface normals, perfectly mimicking a uniform scale operation without requiring any prior masking.</p>
+<h4>Gesture-Based Selection</h4>
+<p>When using tools that evaluate selected vertices (such as the Transform gizmo or Move deformers), the engine recognizes specific stylus gestures drawn in the empty background space of the viewport:</p>
+<ul>
+<li><strong>Select All:</strong> Drawing a straight line <strong>upwards</strong> in the background selects every vertex on the active object.</li>
+<li><strong>Lasso Select:</strong> Starting from outside the object, drawing an almost-closed circle around a specific area masks all vertices within that drawn boundary.</li>
+<li><strong>Invert Selection:</strong> Drawing a straight line <strong>downwards</strong> in the background inverts your current active selection.</li>
+</ul>
+<blockquote>
+<p><strong>Troubleshooting Unresponsive Tools:</strong> Because a downward stroke inverts the mask, drawing an upward line (Select All) followed immediately by a downward line (Invert) will leave you with exactly zero vertices selected. If your Transform gizmo or Move tool suddenly appears broken or refuses to manipulate the mesh, you have likely accidentally cleared your selection using this gesture sequence. Ensure you have active vertices masked before attempting to transform.</p>
+</blockquote>
+<hr>
+<h3>4. Implicit Posing: Rigging Without Skeletons</h3>
+<p>Uniform 3D does not use explicit bone armatures, skeletal hierarchies, or manual vertex weight-painting editors. Instead, posing is handled through <strong>Implicit Pose Rigs</strong>.</p>
+<p>When you select a posing tool, the engine computes a dynamic, temporary deformation chain directly from your mesh structure. The pivot point and deformation zone are derived either from your pre-defined Region IDs (Polygroups) or from geodesic surface distance.</p>
+<pre><code class="language-text">Method A: Region Graph Pose Rig (ID Boundaries)
+[ Torso (Region 1) ] ========= Joint Pivot Loop ========= [ Arm (Region 2) ]
+                                      ▲
+                Pivot automatically snaps to Region boundary
+
+Method B: Topology Pose Rig (Geodesic Graph Distance)
+[ Pencil Touch Point ] ──────── Geodesic Falloff Distance ────────&gt; [ Boundary ]
+                                      ▲
+                Dynamic rotational origin calculated along surface
+</code></pre>
+<h4>The Two Implicit Rig Providers</h4>
+<ul>
+<li><strong>Region Graph Pose Rig:</strong><ul>
+<li><strong>Mechanism:</strong> Evaluates the integer Region IDs assigned to faces across the object.</li>
+<li><strong>Operation:</strong> When you tap a limb or section of your mesh, the engine detects adjacent Region IDs and snaps the joint pivot directly to the boundary loop separating them. For example, if an upper arm is assigned Region 1 and the torso is assigned Region 2, placing your Apple Pencil on the arm sets the rotational origin at the shoulder boundary interface.</li>
+</ul>
+</li>
+<li><strong>Topology Pose Rig:</strong><ul>
+<li><strong>Mechanism:</strong> Operates on models that have not been divided into discrete Region IDs.</li>
+<li><strong>Operation:</strong> Tapping a point on the geometry causes the engine to measure geodesic topological distance outward along connected edges. The joint origin is placed at the specified falloff boundary, allowing organic limbs, tails, or fingers to be posed without prior polygrouping.</li>
+</ul>
+</li>
+</ul>
+<h4>Pose Transformation Kernels</h4>
+<p>Once an implicit joint origin and deformation segment are established, you manipulate the limb or feature using dedicated pose transformation modes:</p>
+<ul>
+<li><strong>Rotate Pose:</strong> Rotates the isolated mesh segment around the implicit joint pivot relative to the current camera viewing angle.</li>
+<li><strong>Bend Pose:</strong> Applies progressive, non-linear curvature along the length of the topological segment, bending organic structures like fingers, tentacles, or hair clumps.</li>
+<li><strong>Roll Pose:</strong> Rotates the target segment axially along its own internal central axis, allowing you to twist a forearm, wrist, or leg without altering its primary angle of bend.</li>
+<li><strong>Translate Pose:</strong> Displaces the unmasked segment along a directional vector, stretching or offsetting joints for stylized cartoon deformations or anatomical adjustments.</li>
+<li><strong>Scale Pose:</strong> Adjusts the uniform or directional volume of the active segment outward from the joint pivot.</li>
+</ul>
+<hr>
+<h3>5. Gesture-Driven Retopology Architecture</h3>
+<p>Retopology in Uniform 3D bypasses traditional point-by-point vertex extrusions in favor of a gesture-driven sketching workflow derived from the CozyBlanket paradigm. Rather than manually placing individual geometric coordinates in empty 3D space, you sketch topological flow directly over a high-density target object.</p>
+<pre><code class="language-text">[ High-Density Target: GeoMesh / Volume ] &lt;--- Snapping Target (Scene Surface Target)
+                   │
+                   │ Continuous Raycast &amp; Surface Projection
+                   ▼
+[ Low-Poly Topology: PolyMesh / EditMesh ] &lt;--- Dynamic Sketching (Cozy Pencil)
+</code></pre>
+<h4>The Underlying Pipeline</h4>
+<ul>
+<li><strong>The Target Surface (Scene Surface Target):</strong> Your dense, sculpted GeoMesh or baked Volume Group serves as an active projection surface. The retopology engine continuously raycasts strokes toward this target so that every point, edge, and quad created immediately conforms to the high-poly silhouette.</li>
+<li><strong>The Retopology Canvas (PolyMesh / EditMesh):</strong> The active low-poly asset maintains a live Doubly Connected Edge List (DCEL) topological graph. As you draw gestures with the Apple Pencil, the engine recalculates quad structures, boundary loops, and vertex coordinates dynamically.</li>
+</ul>
+<h4>Initializing the Retopology Mesh</h4>
+<p>Because the CozyBlanket gesture engine requires an existing topological base to evaluate strokes, you cannot start sketching in empty space.</p>
+<ol>
+<li><strong>The Add Menu:</strong> Open the <strong>Add</strong> tools menu and navigate to the <strong>Retopo</strong> category.</li>
+<li><strong>Base Generation:</strong> Create either a <strong>Contour</strong> or a <strong>Single Quad</strong> directly over your target high-poly surface to establish the initial low-poly graph. To use contour, trace a line from one side to the other in the model.</li>
+<li><strong>Transition to Sketching:</strong> With the initial geometry established, switch to the <strong>CozyBlanket</strong> tool (located in the <strong>Graph / Retopo</strong> pipeline category) to begin expanding the surface.</li>
+</ol>
+<h4>Surface Quad Creation &amp; Expansion</h4>
+<ul>
+<li><strong>Quad Strip Generation (CozyBlanket):</strong> Drawing parallel lines along the contour of the high-poly surface followed by perpendicular intersecting strokes instructs the CozyBlanket tool to detect intersections and instantly generate connected quad polygons.</li>
+<li><strong>PolyBuild:</strong> Located alongside CozyBlanket in the Graph / Retopo menu, this tool evaluates edge loops. Drawing outward strokes from an unshared boundary edge generates new quad rows along the boundary rail.</li>
+<li><strong>Extend Contour:</strong> Also in the Graph / Retopo menu, this tool allows you to grab an existing open boundary and pull it outward to generate continuous new topological bands by tracing a line parallel to the contour.</li>
+<li><strong>Boundary Bridge:</strong> Drawing a connection stroke between two separate, open boundary edge loops generates a bridge of quad elements that physically connects the two vertex islands.</li>
+</ul>
+<h4>Interactive Topology Modification</h4>
+<ul>
+<li><strong>Poly Knife (Face Splitting):</strong> Drawing a continuous stroke across existing quad faces activates the face splitting module. The engine raycasts the stroke path onto the target surface, splits the intersected polygon faces, and places new vertices and edge loops along the drawn line.</li>
+<li><strong>Gesture Deletion:</strong> Quick zigzag or scrubbing gestures drawn over a vertex, edge, or face invoke deletion operations. The engine collapses or dissolves the underlying graph elements and heals the surrounding quad flow.</li>
+<li><strong>Surface-Constrained Sliding:</strong> Grabbing vertices while holding secondary modifiers activates neighbor-constrained sliding. This moves vertices along the target surface curvature—constrained by active output loops—without lifting them off the high-poly reference volume.</li>
+</ul>
+<hr>
+<h2>Part IV: Surfacing, UVs &amp; PBR Pipelines (Texturing)</h2>
+<h3>1. Topological Seams &amp; Automated UV Unwrapping</h3>
+<p>Uniform 3D eliminates the need for a separate 2D UV workspace window by embedding seam definition directly into the 3D viewport using the topological graph.</p>
+<h4>Marking &amp; Erasing Seams</h4>
+<ul>
+<li><strong>Active Tool:</strong> Select the <strong>Mark Seam</strong> tool.</li>
+<li><strong>Manual Drawing:</strong> Drawing your Apple Pencil across the edges of a PolyMesh flags them as UV boundaries, rendering them as solid red lines in the viewport.</li>
+<li><strong>Erasing Seams:</strong> To remove a UV boundary, draw directly over an existing red seam with the Apple Pencil. The tool acts as a direct toggle.</li>
+<li><strong>Auto-Loop Selection:</strong> <strong>Double-tap</strong> directly on a highlighted edge to automatically project along the graph rail and select an entire continuous topological edge loop.</li>
+</ul>
+<h4>Global Gestures (Background Swipes)</h4>
+<p>Uniform includes gesture shortcuts for rapid, global seam management without needing to target specific edges. You perform these strokes in the empty background space of the viewport:</p>
+<ul>
+<li><strong>Select All Seams:</strong> Draw a single, continuous line <strong>upwards</strong> in the empty background space to automatically flag every hard topological boundary on the mesh as a seam.</li>
+<li><strong>Clear All Seams:</strong> Draw a single, continuous line <strong>downwards</strong> in the empty background space to instantly erase all red seams across the entire object.</li>
+</ul>
+<hr>
+<h3>2. Executing the Unwrap &amp; The UV Layout Scene</h3>
+<p>Once your boundary seams are defined, the UV generation process transitions from the 3D viewport into a dedicated 2D manipulation space.</p>
+<ol>
+<li><strong>Setting Density:</strong> In the <strong>Surface Info</strong> panel, set the desired texel resolution using the <strong>Detail Size</strong> slider, or use the <strong>Detail Size</strong> tool.</li>
+<li><strong>The Rebuild:</strong> Tap <strong>Create Texture Set / Rebuild</strong>. The engine&#39;s Surface Rebuilder cuts the mesh along your marked seams and computes conformal UV projections.</li>
+<li><strong>The UV Layout Scene:</strong> Upon executing the rebuild, the engine generates a 2D scene layout displaying the flattened UV texture map.</li>
+<li><strong>Island Manipulation (Apple Pencil Gestures):</strong> To pack and arrange the separated UV islands, Uniform 3D relies on spatial proximity gestures relative to the island&#39;s bounding area rather than traditional UI transform gizmos:<ul>
+<li><strong>Translate (Move):</strong> Tap and drag directly from the <strong>center</strong> of the UV island to move it freely across the 2D canvas.</li>
+<li><strong>Rotate:</strong> Tap and drag in the empty space slightly <strong>above</strong> the UV island (without touching the island itself) to rotate the geometry.</li>
+<li><strong>Scale:</strong> Tap and drag in the empty space slightly <strong>below</strong> the UV island (without touching the island itself) to scale the geometry up or down to optimize your texture space.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3>3. The Layer Stack &amp; Physical Domains</h3>
+<p>Uniform 3D manages texturing through the <strong>Layers Inspector</strong>. To understand how texturing data is stored and evaluated, it is critical to distinguish between the structural geometry, the allocated canvas, and the physical data channels:</p>
+<ul>
+<li><strong>The Mesh:</strong> The actual 3D structural data (the topological graph of a PolyMesh or the dense ALB point cloud of a GeoMesh) that dictates the physical shape and volume in the viewport.</li>
+<li><strong>The Texture Set:</strong> The 2D UV layout and allocated pixel resolution generated during a Surface Rebuild. It acts as the master canvas size and spatial map where all 2D layer data is physically stored for that specific mesh.</li>
+<li><strong>The Domain:</strong> The specific physical property channels evaluated within that Texture Set. If the Texture Set is the canvas, Domains are the distinct types of data written onto it—such as Color, Displacement, Roughness, or Metalness.</li>
+</ul>
+<p>A single layer is not a flat bitmap; it is a container holding multiple independent Domains simultaneously.</p>
+<h4>Layer Types</h4>
+<p>When adding a new layer, the gallery presents specific layer variants tailored to different surfacing, painting, and procedural tasks:</p>
+<ul>
+<li><strong>Canvas Layers:</strong> Standard bitmap layers configured for freehand painting and manual sculpting. To optimize performance and prevent cross-contamination, these are divided into specific sub-types:</li>
+<li><strong>Color Layers:</strong> Dedicated strictly to editing RGB base pigment values (for use with tools like the <strong>Paint Color</strong> brush).</li>
+<li><strong>Displacement Layers:</strong> Dedicated purely to physical geometric elevation and height manipulation, ensuring your structural sculpting data remains isolated from pigment.</li>
+<li><strong>Color &amp; Displacement Layers:</strong> Combined canvas layers that enable you to paint color and sculpt physical surface details simultaneously with a single stroke.</li>
+<li><strong>Procedural Layers:</strong> Non-destructive layers that evaluate algorithmically rather than storing manual brush strokes. These include:<ul>
+<li><strong>Color Fills:</strong> Floods the active domain with a solid, uniform color value.</li>
+<li><strong>Corrections:</strong> Adjusts existing underlying layer data non-destructively (such as modifying HSV values, contrast, or levels across the asset).</li>
+<li><strong>PBR Material Applications:</strong> Applies comprehensive, multi-channel physically based materials dynamically across the layer stack.</li>
+<li><strong>Image Layers:</strong> Integrates external 2D image textures directly into the stack, allowing them to be evaluated as displacement or color data across the mesh.</li>
+<li><strong>Reference Fill Layers:</strong> Generated via the <strong>Reference Layer</strong> module. These assign the global active workspace palette color across the entire object. Because they are linked to the master palette, altering the global color dynamically updates every assigned Reference Fill Layer across your workspace non-destructively.</li>
+</ul>
+</li>
+</ul>
+<p><em>(Note: All layer types support user-controllable masking options, allowing you to isolate procedural fills, corrections, and canvas strokes to specific regions or cavities of the model.)</em></p>
+<h4>The Physical Domains Architecture</h4>
+<p>Defined by the engine&#39;s PBR Material Definition, physical properties are split into distinct, togglable evaluation channels:</p>
+<ul>
+<li><strong>Color (Albedo):</strong> Encapsulates the RGB base pigment values.</li>
+<li><strong>Displacement:</strong> Governs surface elevation and physical surface point height.</li>
+<li><strong>Roughness:</strong> Regulates microfacet scattering (glossy vs. matte).</li>
+<li><strong>Metalness:</strong> Governs conductive versus dielectric reflectance.</li>
+<li><strong>Subsurface (Strength &amp; Color):</strong> Controls internal light scattering for organic materials like skin or wax.</li>
+<li><strong>Sheen:</strong> Adds a soft backscatter effect for fabrics.</li>
+<li><strong>Clearcoat (Strength &amp; Roughness):</strong> Adds a secondary, independent specular reflection layer above the base material (e.g., car paint).</li>
+<li><strong>Emission (Strength &amp; Color):</strong> Governs self-illuminating surface luminance.</li>
+</ul>
+<p>Disabling an unneeded domain bypasses texture map allocation for that channel, defaulting to a single global value to heavily save GPU overhead.</p>
+<hr>
+<h3>4. Integrating External Images</h3>
+<p>Uniform 3D provides three distinct workflows for applying external 2D images to 3D surfaces, depending on the required precision and application method.</p>
+<ol>
+<li><strong>Direct Texture Import (Layer Generator)</strong>
+This method maps an image perfectly to a mesh&#39;s UV coordinates, bypassing manual brush strokes entirely.</li>
+</ol>
+<ul>
+<li><strong>Preparation:</strong> Ensure your target object (such as a spawned Quad or PolyMesh) has an initialized Texture Set. You must execute a <strong>Rebuild</strong> in the Surface Info panel to generate the necessary UVs. <em>(Note: standard Image Objects do not support this generator)</em>.</li>
+<li><strong>Execution:</strong> In the Layers Inspector, add an <strong>Import Color Texture</strong> layer generator. Tap the texture property slot to open the file browser and select your external image. The engine evaluates the image directly across the UV layout. Be aware that alpha transparency support may depend on the layer&#39;s blending mode and active domains.</li>
+</ul>
+<ol start="2">
+<li><strong>Color Stamp Tool</strong>
+This method is ideal for manual, localized placement of decals, logos, or specific texture patches.</li>
+</ol>
+<ul>
+<li><strong>Preparation:</strong> Ensure your object has a Texture Set and create an active Color or Color &amp; Displacement Canvas Layer.</li>
+<li><strong>Execution:</strong> Select the <strong>Color Stamp</strong> tool from the Tool Gallery. Assign your external image to the brush in the tool settings, then tap or drag directly on the 3D model to stamp the image onto the active canvas.</li>
+</ul>
+<ol start="3">
+<li><strong>Projection Painting Override</strong>
+This method projects an image across the surface based strictly on the camera&#39;s current perspective.</li>
+</ol>
+<ul>
+<li><strong>Preparation:</strong> Ensure your object has a Texture Set and create an active Canvas Layer.</li>
+<li><strong>Execution:</strong> Activate the <strong>Projection painting override</strong> and load your external image. Align your camera viewport to the desired angle and stroke across the mesh. The engine raycasts the image from the camera plane directly into the 2D layer domains, allowing the texture to seamlessly contour over complex physical geometry.</li>
+</ul>
+<hr>
+<h3>5. Masking &amp; Domain Protection</h3>
+<p>Masking in Uniform 3D operates on scalar floating-point fields (<strong>0.0</strong> to <strong>1.0</strong>), stored either within a Geometry Selection Domain or an individual layer&#39;s Mask Channel. A value of <strong>1.0</strong> (white) indicates full tool influence, <strong>0.0</strong> (black) represents total protection from operations, and fractional values provide proportional falloff transitions.</p>
+<h4>Interactive Painting &amp; Viewport Clipping</h4>
+<ul>
+<li><strong>Set Selection Brush:</strong> Directly paints selection weights onto the active domain using the Apple Pencil. Stroke intensity and pressure modulate the target weight between <strong>0.0</strong> and <strong>1.0</strong>.</li>
+<li><strong>Add / Subtract Float Filter:</strong> Dynamically increments or decrements existing values in the float domain, allowing you to build up or carve away masked areas progressively without overwriting previous stroke gradients.</li>
+<li><strong>Shape &amp; Boundary Clipping:</strong> Uses viewport projection shapes to execute instant, silhouette-based masking across large clusters of vertices or surface points. Tools utilizing this method combine screen-space shapes to define the boundary:</li>
+<li><strong>Lasso:</strong> Freehand continuous screen-space loops.</li>
+<li><strong>Rectangle:</strong> Two-point bounding boxes.</li>
+<li><strong>Circle &amp; Polygon / Star:</strong> Geometric shapes with real-time radius and radial orientation control.</li>
+</ul>
+<h4>Algorithmic Mask Operators &amp; Domain Filters</h4>
+<p>Float domain filters are algorithmic operators that adjust, smooth, or procedurally transform existing selection masks or layer masks:</p>
+<ul>
+<li><strong>Invert Selection:</strong> Executes an algebraic (1.0 - X) inversion across the entire domain, instantly swapping masked and unmasked areas.</li>
+<li><strong>Clamp Selection:</strong> Snaps intermediate grey values against defined low and high thresholds, collapsing soft gradients into hard-edged, aliased selection borders.</li>
+<li><strong>Grow / Shrink Filter:</strong> Evaluates neighboring topological connections or pixel neighborhoods to dilate or erode the active mask boundary along the surface geometry.</li>
+<li><strong>Smooth &amp; Sharpen Filters:</strong> Applies Laplacian smoothing across the topology graph to soften harsh mask edges, or sharpens fuzzy boundaries.</li>
+<li><strong>Float Gradient:</strong> Projects directional linear mathematical gradients across the floating-point domain.</li>
+<li><strong>Conway Filter:</strong> Executes the Conway Game of Life cellular automata algorithm directly across the float domain to generate procedural, organic patterns.</li>
+</ul>
+<h4>Procedural Influence Providers (Geometry-Aware Masking)</h4>
+<p>Influence Providers are modules that construct real-time, dynamic masks procedurally by querying the physical and geometric attributes of the underlying surface, bypassing the need to paint masks manually:</p>
+<ul>
+<li><strong>Curvature Influence:</strong> Samples the mean curvature of the surface points to automatically isolate crevices, cavities, or sharp ridges without manual painting (ideal for cavity dirt or edge wear).</li>
+<li><strong>Normal Alignment:</strong> Calculates the dot product between the surface normals and a directional reference vector (e.g., restricting paint or displacement exclusively to upward-facing surfaces to simulate snow or dust).</li>
+<li><strong>Region ID Influence:</strong> Automatically constrains tool execution strictly to geometry sharing the specific topological Region ID located directly beneath the initial Apple Pencil touch point.</li>
+<li><strong>Selection Influence:</strong> Pipes the active global selection domain directly into a tool&#39;s internal influence filter, applying tool actions exclusively where the selection is active.</li>
+</ul>
+<p><strong>Locating Filters and Providers in the UI:</strong>
+Because Uniform uses a modular node architecture, these are not standard buttons on the main toolbar. You apply them through three primary locations:</p>
+<ol>
+<li><strong>The Tool Editor:</strong> Open the <strong>Main Menu</strong>, select <strong>Tool Editor</strong>, and use the <strong>Swap / Replace Module</strong> button to swap a standard influence for a Curvature, Normal Alignment, or Region ID influence provider within your active brush.</li>
+<li><strong>The Tool Gallery:</strong> Look for pre-configured procedural tools (like the <strong>Surface Filter</strong> tool) categorized under the <strong>Surface</strong> or <strong>Region</strong> pipelines in the Gallery. Activating these loads the corresponding float filter kernel automatically.</li>
+<li><strong>Global Overrides Inspector:</strong> Plug an Influence Provider directly into an active slot within the <strong>Global Overrides</strong> panel to force every single tool (transforms, extrusions, paint brushes) to respect that mask globally.</li>
+</ol>
+<h4>Domain Safety &amp; Cross-Contamination Overrides</h4>
+<p>Because Uniform integrates 3D geometry with 2D texture channels, the engine enforces strict domain safeguards to prevent destructive mistakes:</p>
+<ul>
+<li><strong>Displacement Isolation:</strong> High-frequency displacement sculpting brushes are hard-blocked from firing if the active target is a Color-only canvas layer, ensuring base geometric point coordinates cannot be distorted while painting pigment.</li>
+<li><strong>Channel Incompatibility:</strong> Texture-space operations cannot write to topological graph structures, and polygon-editing kernels cannot execute on SDF volume groups or float layers, eliminating cross-contamination between structural, volumetric, and surfacing data.</li>
+</ul>
+<hr>
+<h2>Part V: Procedural Systems &amp; Advanced Tool Customization (Under the Hood)</h2>
+<h3>1. Evaluator Stack vs. Global Overrides: The Rosetta Stone</h3>
+<p>Uniform 3D processes procedural modifications and mathematical overrides in two entirely separate domains. Understanding the difference between them is critical for predictable modeling, especially for users migrating from traditional desktop software.</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Uniform 3D: Evaluator Stack</th>
+<th>Uniform 3D: Global Overrides</th>
+<th>Traditional Software Equivalent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Where it lives</strong></td>
+<td>Attached to a specific <strong>3D Scene Node</strong>.</td>
+<td>Lives globally in the <strong>Workspace HUD</strong>.</td>
+<td><strong>Evaluator:</strong> Modifier Stack. <strong>Overrides:</strong> User Preferences / Active Tool Header.</td>
+</tr>
+<tr>
+<td><strong>What it alters</strong></td>
+<td>The <strong>Geometry / Mesh</strong> of the target object.</td>
+<td>The <strong>Brush / Apple Pencil Input</strong>.</td>
+<td><strong>Evaluator:</strong> Non-destructive geometry evaluation. <strong>Overrides:</strong> Global tool settings/snapping.</td>
+</tr>
+<tr>
+<td><strong>Destructive?</strong></td>
+<td>Non-destructive until baked or applied.</td>
+<td>Non-destructive runtime overrides.</td>
+<td>Same.</td>
+</tr>
+<tr>
+<td><strong>Typical Use</strong></td>
+<td>Arrays, live mirroring, procedural subdivision, SDF voxel meshing.</td>
+<td>Grid snapping, stroke smoothing, custom alphas, symmetry planes.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Evaluator:</strong> Mirror Modifier, Subdivision Surface, Booleans. <strong>Overrides:</strong> Stroke Stabilizer, Snap to Grid, Brush Texture Falloff.</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>2. Essential Module Configurations Matrix</h3>
+<p>Because Uniform relies on modular node logic rather than hardcoded monolithic features, advanced behaviors are achieved by plugging specific building blocks into either the <strong>Global Overrides</strong> panel or an object&#39;s <strong>Evaluator Inspector</strong>.</p>
+<p>Below is the definitive matrix of essential modules translated to their practical applications.</p>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Desired Effect</th>
+<th>UI Module Name</th>
+<th>Practical Application</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Global Override</strong></td>
+<td><strong>Grid Snapping (Hard Surface)</strong></td>
+<td><strong>Absolute Value Snapping</strong></td>
+<td>Forces all active tools (transforms, primitive placement, extrusions) to lock to rigid incremental spatial units.</td>
+</tr>
+<tr>
+<td><strong>Global Override</strong></td>
+<td><strong>Stroke Stabilizer (Lazy Mouse)</strong></td>
+<td><strong>Stabilizer Input Filter</strong></td>
+<td>Averages and applies damping to the Apple Pencil input to draw perfectly smooth, sweeping lines without hand jitter.</td>
+</tr>
+<tr>
+<td><strong>Global Override</strong></td>
+<td><strong>Straight Line Lock</strong></td>
+<td><strong>Adaptive Line Input Filter</strong></td>
+<td>Projects the Pencil input into a straight line based on the initial angle of your stroke.</td>
+</tr>
+<tr>
+<td><strong>Global Override</strong></td>
+<td><strong>Custom Brush Alphas</strong></td>
+<td><strong>Image Falloff</strong></td>
+<td>Replaces the standard round brush tip with a custom image texture for stamping specific shapes, pores, or mechanical patterns.</td>
+</tr>
+<tr>
+<td><strong>Global Override</strong></td>
+<td><strong>Scatter / Noise Brush</strong></td>
+<td><strong>Jitter Input Filter</strong></td>
+<td>Randomizes the position and pressure of the Pencil input to create unpredictable, organic scatter effects.</td>
+</tr>
+<tr>
+<td><strong>Global Override</strong></td>
+<td><strong>Input Playback / Macros</strong></td>
+<td><strong>Input Replay</strong></td>
+<td>Records and overrides the panel input with a previous tool execution, allowing you to replay complex strokes exactly as originally drawn.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Live Mirroring</strong></td>
+<td><strong>Multipass Geometry</strong></td>
+<td>Copies, transforms, and merges geometry across a defined symmetry axis non-destructively.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>SDF Voxel Meshing</strong></td>
+<td><strong>Volume Mesher</strong></td>
+<td>Converts an underlying mathematical SDF voxel grid (Volume Group) into an editable polygonal surface mesh.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Non-Destructive Decimation</strong></td>
+<td><strong>Simplify Layout</strong></td>
+<td>Reduces the polygon count of the target object dynamically while preserving the base silhouette and physical volume.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Even Topology Spacing</strong></td>
+<td><strong>Resample Layout</strong></td>
+<td>Procedurally evens out stretched topology into uniform spacing without permanently altering the base mesh.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Surface Stamping</strong></td>
+<td><strong>Stamp Evaluator</strong></td>
+<td>Projects high-frequency mesh details or alphas onto a surface procedurally without permanently baking them into the ALB surface points.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Array / Curve Wrap</strong></td>
+<td><strong>Sequence Deformer + Contours Sequence</strong></td>
+<td>Takes a base mesh and arrays it progressively along a generated transform sequence or a target surface.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Live Physics Ropes</strong></td>
+<td><strong>Rope Sequence</strong></td>
+<td>Deforms an object based on the physics of an Inverse Kinematics (IK) chain, useful for generating hanging cables, chains, or ropes.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Stroke-Based Arrays</strong></td>
+<td><strong>Hook Sequence</strong></td>
+<td>Generates a transform sequence based on your Apple Pencil movement snapped to the screen plane, arraying objects along your manual stroke.</td>
+</tr>
+<tr>
+<td><strong>Evaluator Stack</strong></td>
+<td><strong>Surface-Aligned Arrays</strong></td>
+<td><strong>Scene Rake Sequence</strong></td>
+<td>Arrays objects or deformations across a surface while conforming to the underlying normal direction, perfect for scales, tank treads, or zippers.</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>3. Advanced Tool Customization: Building Custom Brushes</h3>
+<p>Uniform 3D exposes its underlying brush architecture directly through the <strong>Tool Editor</strong>. Rather than offering a rigid set of pre-packaged brushes, tools are constructed as vertical pipelines of interchangeable logic blocks called <strong>Modules</strong>. By swapping these modules, a basic digital airbrush can be transformed into a gritty natural-media pencil or a generative smart material mask.</p>
+<p>Data flows through a tool in a specific sequence:</p>
+<ol>
+<li><strong>Input Filter:</strong> Intercepts the physical Apple Pencil stroke and alters its path.</li>
+<li><strong>Evaluator:</strong> Reads hardware dynamics, mapping physical pressure and tilt to brush properties.</li>
+<li><strong>Brush Sampler &amp; Falloff Provider:</strong> Translates the 2D stroke into 3D execution points and dictates the shape, hardness, and footprint of the brush tip.</li>
+<li><strong>Surface Influence Provider:</strong> Acts as a smart mask, restricting the stroke based on active selections, textures, or underlying surface geometry.</li>
+<li><strong>Brush Kernel:</strong> The final payload that executes the color application or geometric deformation on the active layer.</li>
+</ol>
+<h4>Core Module Library</h4>
+<p>When building or modifying tools, use this reference to configure the pipeline.</p>
+<h5>Input Filters (Stroke Interpolation)</h5>
+<ul>
+<li><strong>Raw Input Filter:</strong> Passes the exact 1:1 panel input without any modifications.</li>
+<li><strong>Stabilizer Input Filter:</strong> Averages and applies damping to the panel input, pulling the stroke along a weighted line to create smooth curves free from hand jitter.</li>
+<li><strong>Jitter Input Filter:</strong> Adds randomized mathematical offsets to both the input&#39;s position coordinates and its pressure readings. This breaks up the digital uniformity of a stroke to mimic dry chalk, rough charcoal, or a damaged brush tip.</li>
+<li><strong>Fixed Line / Adaptive Line Input Filter:</strong> Snaps the panel input into a straight line. The adaptive version projects the input position based on the angle detected from your initial touch samples.</li>
+<li><strong>Cycloid Input Filter:</strong> Generates repeating, looping geometric paths, functioning similarly to a spirograph or kaleidoscopic tracer.</li>
+</ul>
+<h5>Evaluators (Hardware Dynamics)</h5>
+<ul>
+<li><strong>Simple Brush Evaluator:</strong> Modifies the brush sample by adding dynamic size and strength curves based on hardware pressure. This links Apple Pencil pressure directly to stroke radius and opacity.</li>
+<li><strong>Raw Brush Evaluator:</strong> Sets up a brush sample evaluation with no dynamic modifications to its values, creating a uniform, unvarying stroke regardless of how hard you press.</li>
+</ul>
+<h5>Brush Overlays (Parameter Modulation)</h5>
+<p>The <strong>Brush Overlay</strong> module acts as a dynamic property modulator. Rather than acting as a standalone pipeline stage, overlays are attached to specific individual properties within a tool (such as radius, influence, hue, or saturation) to drive their values procedurally during a stroke. This system is essential for programming highly dynamic, natural-media pencils.</p>
+<ul>
+<li><strong>Distance Oscillator:</strong> Modulates the target property cyclically based on the physical distance the stroke travels, allowing for repeating pulse or dashed effects.</li>
+<li><strong>Invert:</strong> Mathematically reverses the input values driving the property.</li>
+<li><strong>Jitter:</strong> Injects randomized noise directly into the assigned parameter, instantly creating chaotic, frame-by-frame variations in properties like color hue or saturation.</li>
+<li><strong>Pressure:</strong> Links the target property explicitly to the hardware pressure data from the Apple Pencil.</li>
+<li><strong>Stack:</strong> A container module that allows you to layer multiple distinct overlays together, compounding their mathematical effects onto a single property.</li>
+<li><strong>Tip Orientation:</strong> Drives the parameter based on the physical tilt angle and directional rotation of the stylus.</li>
+</ul>
+<h5>Brush Samplers (Stroke Generation)</h5>
+<ul>
+<li><strong>Scene Cursor Brush Sampler:</strong> The default engine for standard continuous painting and sculpting. Generates continuous brush samples dynamically as the cursor moves across raycast-enabled nodes in the scene.</li>
+<li><strong>Surface Scatter Brush Sampler:</strong> Generates brush samples randomly scattered throughout the surface instead of along an unbroken line. This is ideal for adding organic noise, airbrush spatter, skin pores, or stippling effects without visible repetition.</li>
+<li><strong>Mesh Vertex / Edge / Face Brush Sampler:</strong> Snaps the brush evaluation specifically to discrete topological elements. This allows you to sequentially paint or displace individual vertices, edges, or polygon faces cleanly based on the underlying mesh structure rather than freehand strokes.</li>
+</ul>
+<h5>Falloff Providers (Brush Tip Profiling)</h5>
+<ul>
+<li><strong>Constant Falloff Provider:</strong> Returns a uniform maximum falloff value across the entire brush radius. This produces a completely solid, hard-edged brush footprint with no soft fading or gradient at the perimeter, functioning like an inking pen or hard marker.</li>
+<li><strong>Prism Falloff Provider:</strong> Returns a falloff profile relative to the distance to a rounded prism, generating a blocky, chisel-tip marker profile.</li>
+<li><strong>Sphere Falloff Provider:</strong> Calculates falloff based on physical Euclidean distance from the center to the edge, creating a standard soft-edged round digital airbrush.</li>
+<li><strong>Random Falloff Provider:</strong> Returns a completely randomized falloff value for each individual query, breaking the smooth gradient to produce a chaotic, staticky footprint.</li>
+<li><strong>Texture Falloff Provider:</strong> Returns a falloff profile by sampling a surface-oriented alpha image. The brush tip adopts the shape of the external image loaded into the tool&#39;s <strong>Texture Provider</strong> module.</li>
+</ul>
+<h5>Surface Influence Providers (The Masking Engine)</h5>
+<ul>
+<li><strong>Constant Surface Influence Provider:</strong> Returns a uniform influence value everywhere within the brush radius, applying pigment or displacement equally while ignoring masks and geometric angles.</li>
+<li><strong>Curvature Surface Influence Provider:</strong> Returns the mean curvature of the surface as its influence value. This reads physical sharpness and concavity, allowing you to procedurally paint rust or dirt strictly into deep crevices (cavity masking) or apply scraped-metal effects strictly along exposed ridges (edge wear).</li>
+<li><strong>Normal Surface Influence Provider:</strong> Evaluates the angle of the surface normal relative to a specified test vector. By setting the test vector, you can restrict the brush to affect geometry facing a specific direction (such as pointing along the Z-axis for accumulating snow or overhead lighting highlights). <em>(Note: The effect relies on the exact coordinate space and vector values set in the module&#39;s properties, which must be calibrated to your object&#39;s orientation)</em>.</li>
+<li><strong>Region Surface Influence Provider:</strong> Restricts full tool influence strictly to surface points sharing the exact Region ID (Polygroup) located directly under your initial stylus touch. This creates an automatic boundary mask, allowing you to paint rapidly across a complex asset while staying within the borders of a specific mechanical part or clothing seam.</li>
+<li><strong>Selection Surface Influence Provider:</strong> Returns the active manual selection state as the influence value. Unlike the Constant provider, which applies tool actions across the entire radius, this module evaluates your drawn masks—applying full brush intensity to selected ALBs and completely protecting unselected or masked areas.</li>
+</ul>
+<h5>Brush Kernels (The Execution Payload)</h5>
+<ul>
+<li><strong>Color Kernels:</strong><ul>
+<li><strong>Paint Color Brush Kernel:</strong> Blends a new color on top of the current surface color.</li>
+<li><strong>Texture Color Brush Kernel:</strong> Sets surface colors by sampling a surface-oriented image assigned in the tool&#39;s <strong>Texture Provider</strong> module.</li>
+<li><strong>Erase Color Brush Kernel:</strong> Applies alpha erasing directly to surface color channels.</li>
+<li><strong>Smooth Color Brush Kernel:</strong> Averages and smooths neighboring surface color values.</li>
+</ul>
+</li>
+<li><strong>Displacement Kernels:</strong><ul>
+<li><strong>Draw Displacement Brush Kernel:</strong> Displaces geometry along the averaged surface normal direction.</li>
+<li><strong>Clay Displacement Brush Kernel:</strong> Displaces geometry toward a dynamically positioned plane, simulating the feel of traditional clay buildup.</li>
+<li><strong>Drag Displacement Brush Kernel:</strong> Displaces geometry in the direction of cursor movement.</li>
+<li><strong>Pinch Displacement Brush Kernel:</strong> Displaces geometry inward toward the cursor center.</li>
+<li><strong>Sharp Displacement Brush Kernel:</strong> Combines pinching and inflating to produce crisp, cut-like creases.</li>
+<li><strong>Trim Displacement Brush Kernel:</strong> Flattens geometry by projecting vertex positions onto a dynamically adjusted cutting plane.</li>
+<li><strong>Texture Height Displacement Brush Kernel:</strong> Displaces geometry perpendicularly along normals based on the scalar height values of an image assigned in the <strong>Texture Provider</strong> module.</li>
+<li><strong>Texture Vector Displacement Brush Kernel:</strong> Displaces geometry in full 3D space (across X, Y, and Z axes) by interpreting the RGB color channels of an image as directional vectors. Unlike standard height displacement, vector displacement can recreate complex overhanging structures (such as scales, horns, or ears) from a single brush stamp. Requires an assigned image in the <strong>Texture Provider</strong> module.</li>
+<li><strong>Laplacian Smooth Displacement Brush Kernel:</strong> Applies Laplacian smoothing that averages adjacent vertex positions while actively preserving the overall volume and shape of the model. This prevents geometric shrinkage and mesh collapse common with basic smoothing filters.</li>
+</ul>
+</li>
+</ul>
+<h4>Building Stylized Brushes</h4>
+<p>To construct a custom natural-media brush (such as a graphite pencil or rough chalk) that responds to pressure and exhibits organic surface scatter, assemble the following pipeline in the Tool Editor:</p>
+<ol>
+<li><strong>Initialize a Custom Tool:</strong> Open the <strong>Tool Gallery</strong>, select a basic brush (such as <strong>Paint Color</strong>), open the <strong>Tool Editor</strong>, and tap <strong>Duplicate</strong> to preserve default presets.</li>
+<li><strong>Add Scatter (Input Filter):</strong> Replace the default Input Filter with the <strong>Jitter Input Filter</strong>. Tune the X/Y spread properties to scatter incoming touch coordinates into a textured, dry-brush stroke path.</li>
+<li><strong>Map Pressure (Evaluator):</strong> Ensure the Evaluator slot contains the <strong>Simple Brush Evaluator</strong>. Configure the pressure curves to link stylus force directly to brush <strong>Radius</strong> and <strong>Opacity</strong>.</li>
+<li><strong>Apply Texture (Falloff Provider):</strong> Replace the standard mathematical sphere with the <strong>Texture Falloff Provider</strong>. In the tool&#39;s <strong>Texture Provider</strong> module, tap the image slot to import a greyscale texture of pencil grit, sponge noise, or charcoal grain.</li>
+<li><strong>Define Output (Brush Kernel):</strong> For drawing and painting, set the Brush Kernel to <strong>Paint Color Brush Kernel</strong>. If you want this identical gritty, scattered stroke to carve structural grooves into a sculpt rather than apply pigment, swap the kernel to <strong>Draw Displacement Brush Kernel</strong>.</li>
+</ol>
+<hr>
+<h2>Appendices</h2>
+<h3>Appendix A: Master Tool &amp; Modifier Reference</h3>
+<p>This appendix details the primary tools available in the Tool Gallery, outlining their core execution modules, practical applications, and how the dynamic hardware modifiers (Mod 0, Mod 1, Mod 2) alter their behavior in real time. Ensure your active object matches the Required Target data type before attempting to execute a tool.</p>
+<h2>Appendix A: Master Tool, Action, and Resource Reference</h2>
+<p>This appendix details the tools, actions, and resources available within the Uniform 3D workspace. The default layout exposes the primary categories through the interface launchers, while specific advanced modifiers, overrides, and array generators must be accessed via the Tool Gallery or the global Search modal.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>UI Name</th>
+<th>Practical Description</th>
+<th>Mod 0 (M0 / Shift)</th>
+<th>Mod 1 (M1 / Alt)</th>
+<th>Mod 2 (M2 / Ctrl)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Object</td>
+<td>Interaction</td>
+<td>Shows the default interaction tool for the active object. Required to edit arrays and curves.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Object</td>
+<td>Reference</td>
+<td>Assigns a previously selected visual reference directly into an object.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Object</td>
+<td>Symmetry</td>
+<td>Shows an axis symmetry gizmo so actions executed on one side apply to the other dynamically.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Object</td>
+<td>Apply Curve</td>
+<td>Bakes active curve deformations permanently into the target geometry.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Merge</td>
+<td>Combines multiple selected scene nodes into a single node.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Convert</td>
+<td>Converts geometry between core architecture types (e.g. Volume to GeoMesh).</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Hierarchy</td>
+<td>Manages parent and child relationships within the global node tree.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Pivot</td>
+<td>Adjusts the spatial pivot origin point of the active scene node.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Transfer</td>
+<td>Transfers specific attributes or structural data between selected scene objects.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Replace</td>
+<td>Replaces the current object entirely with an object previously saved using the Capture tool.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Duplicate</td>
+<td>Creates an instanced duplicate of the selected object linked to the original data.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Symmetrize Node</td>
+<td>Mirrors the object transform at the macro scene node level rather than the vertex layout level.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Delete Object</td>
+<td>Removes the selected object and its pipeline container from the workspace entirely.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Capture</td>
+<td>Writes an Id Storage Object Provider to the overrides panel so the Replace tool can target it.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Scene</td>
+<td>Origin Object</td>
+<td>Resets or defines the localized spatial origin point of the active object geometry.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Graph</td>
+<td>Deform</td>
+<td>Standard topological deformation and layout adjustment tools.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Graph</td>
+<td>Loop</td>
+<td>Selects or manipulates continuous topological edge loops along quad rails.</td>
+<td>Inflate Loop</td>
+<td>Dissolve Loop</td>
+<td>Insert Loop</td>
+</tr>
+<tr>
+<td>Graph</td>
+<td>Extrude</td>
+<td>Pulls a face or defined region outward to generate new 3D volume from a flat surface.</td>
+<td>Local Inset</td>
+<td>Delete Region</td>
+<td>Draw Region In-Place</td>
+</tr>
+<tr>
+<td>Retopo</td>
+<td>Poly Build</td>
+<td>Extends faces outward organically from open boundary edges.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Retopo</td>
+<td>CozyBlanket</td>
+<td>Dedicated retopology tool for drawing quad grids directly on surfaces using gestures.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Retopo</td>
+<td>Extend Contour</td>
+<td>Pulls an existing open boundary outward to generate continuous new topological bands.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Retopo</td>
+<td>Bridge Fill</td>
+<td>Closes gaps by bridging open topological borders.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Retopo</td>
+<td>Merge Split</td>
+<td>Welds nearby vertices together or splits existing topology at intersections.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Mark Region</td>
+<td>Defines a specific polygonal area with a unique integer ID for localized operations.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Mark Sharp</td>
+<td>Tags specific structural edges to render with hard creased shading.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Knife</td>
+<td>Manually slices through existing geometry to redraw edge flow destructively.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Mark Seam</td>
+<td>Marks boundaries indicated by red lines for automated UV unwrapping calculations.</td>
+<td>N/A</td>
+<td>Erase Seam</td>
+<td>Auto-Loop</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Transform Uv Mapping</td>
+<td>Transforms and packs 2D UV coordinates using proximity-based stylus gestures.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Pattern Uv Mapping</td>
+<td>Projects the exact same UV texture scale onto different but equivalent UV islands.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Edit Mesh</td>
+<td>Boundary</td>
+<td>Selects or modifies open mesh borders. Can be used to extend quad lines during retopology.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Region</td>
+<td>Init Region</td>
+<td>Resets or assigns fresh selection groupings to raw geometry.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Region</td>
+<td>Region Expand</td>
+<td>Dilation tool that grows the active region boundary outward across connected faces.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Region</td>
+<td>Duplicate Region</td>
+<td>Clones the specific faces contained within a targeted region ID.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Region</td>
+<td>Copy Region</td>
+<td>Copies the selected region data coordinates to the clipboard buffer.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Draw</td>
+<td>Draw Object</td>
+<td>Draws a new region ID boundary directly onto the active object surface geometry.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Draw</td>
+<td>Draw Scene</td>
+<td>Draws a region boundary projecting through the global scene depth.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Draw</td>
+<td>Draw Precise</td>
+<td>Paints region masks with exact hard-edged stroke boundaries.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Draw</td>
+<td>Delete Region</td>
+<td>Removes targeted faces grouped by region ID. Useful to join shapes with Bridge Fill.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Draw</td>
+<td>Region Clip</td>
+<td>Slices or clips underlying geometry strictly based on a manually drawn region shape.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Draw</td>
+<td>Split Region</td>
+<td>Detaches a specific region into its own independent topological island.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Add</td>
+<td>Scene Instance</td>
+<td>Spawns a lightweight referenced instance of a master scene.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Add</td>
+<td>Quad</td>
+<td>Spawns a single polygon quad directly onto a high-res surface to begin retopology.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Add</td>
+<td>Contour</td>
+<td>Traces a line from one side of a mesh to the other to generate an initial retopology loop.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Mesh</td>
+<td>Extract</td>
+<td>Pulls a new physical mesh surface outward from an existing masked area.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Mesh</td>
+<td>Grid</td>
+<td>Spawns a flat subdivided 3D plane.</td>
+<td>Snap Transform</td>
+<td>Subtractive</td>
+<td>Lock Origin</td>
+</tr>
+<tr>
+<td>Mesh</td>
+<td>Disk</td>
+<td>Spawns a flat circular polygon plane primitive.</td>
+<td>Snap Transform</td>
+<td>Subtractive</td>
+<td>Lock Origin</td>
+</tr>
+<tr>
+<td>Mesh</td>
+<td>QuadSphere</td>
+<td>Spawns a sphere primitive optimized entirely with even quad topology.</td>
+<td>Snap Transform</td>
+<td>Subtractive</td>
+<td>Lock Origin</td>
+</tr>
+<tr>
+<td>Mesh</td>
+<td>Light Field</td>
+<td>Spawns physical scene illumination such as point lights or HDRI environments.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Circle Curve</td>
+<td>Spawns a circular curve network primitive.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Radial Curve</td>
+<td>Spawns a curve with active radial symmetry properties.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Draw Curve</td>
+<td>Freehand sketching tool to generate custom curve paths.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Line Curve</td>
+<td>Spawns a rigid straight line curve primitive.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Variant Curve</td>
+<td>Spawns a curve with varying thickness or dynamic attributes.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Volume Sketch</td>
+<td>Rope Volume</td>
+<td>Draws a 3D volume stroke that calculates physics rope mechanics dynamically.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Volume Sketch</td>
+<td>Blob Volume</td>
+<td>Draws freehand 2D silhouettes that are instantly converted into solid 3D blocks.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Volume Sketch</td>
+<td>Draw Volume</td>
+<td>Standard freehand 3D volume sketching generation.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Surface</td>
+<td>Transfer</td>
+<td>Transfers specific surface data domains like colors or masks between objects.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Surface</td>
+<td>Detail Size</td>
+<td>Displays a visual grid preview to set the target texel density prior to generation.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Surface</td>
+<td>Rebuild</td>
+<td>Recalculates the geometric manifold and topology to match the set sculpting resolution.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>Select Expand</td>
+<td>Dilation tool that grows the active selection mask outward.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>Region Select</td>
+<td>Instantly masks an entire area based purely on its assigned Region ID.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>Select Surface</td>
+<td>Standard freehand surface masking tool.</td>
+<td>Smooth Mask</td>
+<td>Erase Mask</td>
+<td>Invert Stroke</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>Select Filter</td>
+<td>Applies algorithmic filtering adjustments to the active selection mask.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>Color Select</td>
+<td>Isolates a mask boundary based on sampled base color pigments.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Round Clay</td>
+<td>Scatters noise or distinct alpha shapes across the surface mesh.</td>
+<td>Smooth</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Sharp</td>
+<td>Carves deep crisp V-shaped scratches or structural panel lines.</td>
+<td>Smooth</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Draw Displacement</td>
+<td>Standard sculpting brush that builds up physical volume layer by layer.</td>
+<td>Smooth</td>
+<td>Subtractive</td>
+<td>Sample Height</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Trim</td>
+<td>Scrapes off lumpy geometry by projecting vertices to leave flat hard-surface planes.</td>
+<td>Smooth</td>
+<td>Fill Divots</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Square Clay</td>
+<td>Builds up flat layered strips of geometry with a distinct square blocky profile.</td>
+<td>Smooth</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Surface Filter</td>
+<td>Procedurally smooths or sharpens the entire surface displacement globally.</td>
+<td>Smooth All</td>
+<td>Sharpen All</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Displacement</td>
+<td>Mask Filter</td>
+<td>Modifies the geometric displacement strictly based on floating point mask data.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Fill Clip</td>
+<td>Fills a manually clipped viewport shape with solid pigment.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Color Expand</td>
+<td>Dilates the painted color outward along the connected surface topology.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Gradient</td>
+<td>Projects a linear or radial color gradient across the domain.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Average</td>
+<td>Blurs and mathematically averages surrounding pigment values.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Color Stamp</td>
+<td>Stamps a pre-made 2D external image onto the active 3D surface layer.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Color Filter</td>
+<td>Applies global algorithmic color adjustments like hue or saturation shifts to the layer.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Paint</td>
+<td>The primary brush for coloring the model or revealing procedural layer masks.</td>
+<td>Blend Smear</td>
+<td>Eraser Mode</td>
+<td>Eyedropper</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>Tex Rebuild</td>
+<td>Repacks or rebuilds the 2D texture UV space independently of the geometric rebuild.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>Fill Expand</td>
+<td>Precision flood fill algorithm for painting specific cavities or enclosed regions.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>Pencil</td>
+<td>Hard-edged pixel-perfect drawing tool with zero falloff gradient.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>Sampler</td>
+<td>Eyedropper tool to sample specific surface data parameters.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Deformer</td>
+<td>Geodesic Move</td>
+<td>Moves vertices considering the topological surface distance rather than flat screen space.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Scene Flip</td>
+<td>Flips the deformation target physically across the global scene axis.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Elastic</td>
+<td>Physics-based elastic grab tool that preserves overall object volume while dragging.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Hook</td>
+<td>Pulls a specific clustered grouping of vertices outward following the cursor.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Tweak</td>
+<td>Grabs and shifts single vertices or very small local clusters for micro-adjustments.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Boundary</td>
+<td>Deforms only the open edge boundaries of a mesh without affecting internal geometry.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Inflate</td>
+<td>Puffs out the base geometry mesh radially outward from the normals.</td>
+<td>Smooth</td>
+<td>Subtractive</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>Relax</td>
+<td>Smooths and evens out vertex spacing without shrinking the underlying volume.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Transform</td>
+<td>Scene Transform</td>
+<td>Standard 3D gizmo that moves the entire macro object transform globally.</td>
+<td>Snap Transform</td>
+<td>N/A</td>
+<td>Select Object</td>
+</tr>
+<tr>
+<td>Transform</td>
+<td>Object Transform</td>
+<td>Standard 3D gizmo that scales or translates geometry vertices in local space.</td>
+<td>Snap Transform</td>
+<td>Scale Local</td>
+<td>Select Object</td>
+</tr>
+<tr>
+<td>Transform</td>
+<td>Move</td>
+<td>Physically grabs and translates masked vertices around the screen space.</td>
+<td>Smooth</td>
+<td>Normal Constrain</td>
+<td>Direct Selection</td>
+</tr>
+<tr>
+<td>Transform</td>
+<td>Deform Filter</td>
+<td>Applies algorithmic smoothing or sharpening directly to the deformation coordinates.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Transform</td>
+<td>Pose</td>
+<td>Calculates implicit rig origins to bend or rotate mesh segments cleanly from a joint.</td>
+<td>Smooth Bend</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Transform</td>
+<td>Mesh Kernel</td>
+<td>Executes low-level vertex displacement payloads directly on the graph.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Attract Curve</td>
+<td>Pulls surrounding geometry locally towards a target curve path.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Radius Tilt</td>
+<td>Adjusts the twist and physical thickness of a curve along its trajectory.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Insert Curve</td>
+<td>Adds new editable control points to an existing curve line.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Rope Curve</td>
+<td>Applies inverse kinematics physics directly to curve control points.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>Spiral Curve</td>
+<td>Generates helical and corkscrew deformations along a path.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Layout</td>
+<td>Subdivide</td>
+<td>Uniformly increases the active polygon count globally across the mesh layout.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Layout</td>
+<td>Symmetrize</td>
+<td>Projects a mesh across an axis based on object transform. Move object to one side first.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Layout</td>
+<td>Flip</td>
+<td>Reverses the topological layout orientation and normal direction.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Layout</td>
+<td>Trim Layout</td>
+<td>Cuts away geometry and topology physically outside a defined boundary.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Search</td>
+<td>Search</td>
+<td>Opens a search modal window to locate tools, actions, and resources not in launchers.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Top</td>
+<td>Snaps the viewport camera to an orthographic top perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Left</td>
+<td>Snaps the viewport camera to an orthographic left perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Front</td>
+<td>Snaps the viewport camera to an orthographic front perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Right</td>
+<td>Snaps the viewport camera to an orthographic right perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Back</td>
+<td>Snaps the viewport camera to an orthographic back perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Flip X</td>
+<td>Mirrors the viewport camera rendering horizontally.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Bottom</td>
+<td>Snaps the viewport camera to an orthographic bottom perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Scene</td>
+<td>Resets the camera focus to the default global scene perspective.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Note</td>
+<td>Opens workspace text notes or structural annotations.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>N/A</td>
+<td>Chart Surface View</td>
+<td>Specialized rendering display mode for analyzing surface topology.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Viewport Projector Editor</td>
+<td>Manages 2D image projection overlays floating in the viewport.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Projection Triangle</td>
+<td>Uses a triangle primitive shape for viewport shape masking or projection operations.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Selection Clip</td>
+<td>Hides geometry completely outside of the active selection mask visually.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Scene Selection Draw Clip</td>
+<td>Draws a clip shape using scene depth projection to isolate selections.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Deformation Selection Draw Clip</td>
+<td>Masks deformation influence strictly using a manually drawn shape.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Light Tweak Surface View</td>
+<td>Adjusts how lighting interacts with the surface preview without altering light nodes.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Snap Scene Transform Delta Deformer</td>
+<td>Snaps deformation offsets strictly to incremental scene coordinate units.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Region Extract Build Mesh</td>
+<td>Converts a specific region ID boundary into a completely separate physical mesh layout.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Ambient Occlusion Surface Process</td>
+<td>Bakes or calculates cavity shadowing globally across the surface domains.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Anchor Deformer</td>
+<td>Pins specific target vertices in place while surrounding unmasked geometry deforms.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Tweak EditMesh</td>
+<td>Micro-adjusts individual EditMesh vertices on the fly without leaving the current tool.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Distance Measure</td>
+<td>Ruler utility to measure specific spatial scale units between two points.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Retopology Override</td>
+<td>Forces the active tool to evaluate exclusively against retopology snapping targets.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Snapping Override</td>
+<td>Global toggle module for overriding spatial layout snapping.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Pixel Snap Override</td>
+<td>Forces 2D canvas operations to snap perfectly to integer pixel coordinates.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Grid Snap Override</td>
+<td>Forces operations and transforms to snap perfectly to the workspace background grid.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Paint Color Override</td>
+<td>Forces multi-purpose tools to execute strictly in the Color domain.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Paint Material Override</td>
+<td>Destructive PBR painting mode that writes to multiple material channels simultaneously.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Smooth Displacement Override</td>
+<td>Forces the active brush footprint to act as a smoothing algorithm globally.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Projection Painting Override</td>
+<td>Projects 2D images seamlessly from the camera perspective onto the 3D surface.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Brush Backface Culling Override</td>
+<td>Prevents brushes from affecting geometry facing away from the camera angle.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Simulation Override</td>
+<td>Forces standard layout tools to evaluate dynamically with physics properties.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Rope Stabilizer Override</td>
+<td>Adds heavy inverse kinematics damping to stroke inputs for perfectly smooth lines.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Cycloid Stroke Override</td>
+<td>Generates looping spirograph geometric paths from standard freehand strokes.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Straight Line Override</td>
+<td>Snaps panel input into rigid straight lines based on the initial drawing angle detected.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Circle Stroke Override</td>
+<td>Forces the input stroke path into a perfect geometric circle.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Star Stroke Override</td>
+<td>Forces the input stroke path into a geometric star shape.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Scatter Brush Override</td>
+<td>Randomizes brush sample coordinates for stippling or organic noise generation.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Curvature Surface Influence Override</td>
+<td>Constrains brush effects strictly to sharp crevices or exposed physical ridges.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Braid Curve Override</td>
+<td>Wraps geometric curve generation into an intertwining braid pattern.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Clone Curve Override</td>
+<td>Duplicates curve data evenly along a defined spatial offset.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Helix Curve Override</td>
+<td>Forces continuous curve generation into a corkscrew shape.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Radius Spike Override</td>
+<td>Injects randomized thickness variations along a curve trajectory.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Twist Curve Override</td>
+<td>Applies axial rotation twisting along a curve length continuously.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Target Align Curve Override</td>
+<td>Snaps curve normals to face a specific global target object.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Square Profile Override</td>
+<td>Replaces standard round brush falloffs with a hard square tip.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Circle Profile Override</td>
+<td>Standard round digital airbrush falloff override.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Line Profile Override</td>
+<td>Forces the brush tip into a sharp linear chisel for edge carving.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Rectangle Profile Override</td>
+<td>Forces the brush tip into an elongated horizontal or vertical rectangle.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Random Spike Oval Profile Override</td>
+<td>Generates chaotic staticky brush footprints for heavy damage effects.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Grid Array</td>
+<td>Essential procedural array that duplicates objects in an X/Y grid structure.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Radial Array</td>
+<td>Essential procedural array duplicating objects in a circular radial pattern.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Curve Array</td>
+<td>Essential procedural array wrapping objects continuously along a curve.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Subdivide Poly Mesh Overlay</td>
+<td>Applies a non-destructive subdivision surface modifier visually to PolyMeshes.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Shell Poly Mesh Overlay</td>
+<td>Applies non-destructive physical thickness geometry to flat PolyMeshes.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Geo Curve Volume</td>
+<td>Generates solid physical volume continuously around a GeoCurve.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Not in Launchers</td>
+<td>Geo Curve Custom</td>
+<td>Loads custom parameterization overrides for GeoCurves.</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+</tbody></table>
